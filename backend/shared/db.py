@@ -120,9 +120,18 @@ def list_orders_by_batch(batch_id: str) -> List[Dict[str, Any]]:
 
 
 def batch_check_exists(batch_file_name: str) -> bool:
-    """Check if a batch with the given filename already exists"""
+    """
+    Check if a batch with the given filename already exists
+    
+    Note: This uses scan which is inefficient. Consider:
+    1. Adding a GSI with batch_file_name as partition key
+    2. Using a separate index/cache for filenames
+    3. Using a naming convention that includes unique identifiers
+    """
     table = get_batches_table()
+    # Limit scan to minimize cost - if we find one match, that's enough
     response = table.scan(
-        FilterExpression=Attr('batch_file_name').eq(batch_file_name)
+        FilterExpression=Attr('batch_file_name').eq(batch_file_name),
+        Limit=1
     )
     return len(response.get('Items', [])) > 0

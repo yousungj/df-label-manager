@@ -382,6 +382,7 @@ aws logs tail /aws/lambda/df-sftp-poller --follow
 2. **API Authentication**: Add API keys or AWS Cognito
 3. **Network**: Deploy Lambda in VPC for enhanced security
 4. **Monitoring**: Enable AWS CloudTrail for audit logging
+5. **CORS**: Update S3 CORS settings in `storage-stack.ts` to match your actual domain instead of wildcard
 
 ## 📝 License
 

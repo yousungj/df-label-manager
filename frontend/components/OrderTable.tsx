@@ -7,10 +7,11 @@ import StatusBadge from './StatusBadge';
 
 interface OrderTableProps {
   orders: DFOrder[];
+  batchId: string;
   onUpdate: () => void;
 }
 
-export default function OrderTable({ orders, onUpdate }: OrderTableProps) {
+export default function OrderTable({ orders, batchId, onUpdate }: OrderTableProps) {
   const [selectedOrders, setSelectedOrders] = useState<Set<string>>(new Set());
 
   const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -37,7 +38,10 @@ export default function OrderTable({ orders, onUpdate }: OrderTableProps) {
 
     try {
       await ordersApi.bulkShipConfirm({
-        order_ids: Array.from(selectedOrders),
+        orders: Array.from(selectedOrders).map(order_id => ({
+          order_id,
+          batch_id: batchId,
+        })),
       });
       setSelectedOrders(new Set());
       onUpdate();
@@ -48,7 +52,7 @@ export default function OrderTable({ orders, onUpdate }: OrderTableProps) {
 
   const handleShipConfirm = async (orderId: string) => {
     try {
-      await ordersApi.shipConfirm(orderId);
+      await ordersApi.shipConfirm(orderId, batchId);
       onUpdate();
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Failed to confirm shipment');
@@ -57,7 +61,7 @@ export default function OrderTable({ orders, onUpdate }: OrderTableProps) {
 
   const handleUpdatePriority = async (orderId: string, priority: 'normal' | 'high' | 'urgent') => {
     try {
-      await ordersApi.updatePriority(orderId, { priority });
+      await ordersApi.updatePriority(orderId, batchId, { priority });
       onUpdate();
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Failed to update priority');
@@ -69,7 +73,7 @@ export default function OrderTable({ orders, onUpdate }: OrderTableProps) {
     if (!tracking) return;
 
     try {
-      await ordersApi.updateTracking(orderId, { tracking_number: tracking });
+      await ordersApi.updateTracking(orderId, batchId, { tracking_number: tracking });
       onUpdate();
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Failed to update tracking');

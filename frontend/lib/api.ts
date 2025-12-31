@@ -11,12 +11,20 @@ import type {
   PaginatedResponse,
 } from './types';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+
+if (!API_BASE_URL) {
+  console.warn('NEXT_PUBLIC_API_URL is not defined. API calls will fail.');
+}
 
 async function fetchApi<T>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<T> {
+  if (!API_BASE_URL) {
+    throw new Error('API URL is not configured. Please set NEXT_PUBLIC_API_URL environment variable.');
+  }
+  
   const url = `${API_BASE_URL}${endpoint}`;
   const response = await fetch(url, {
     ...options,
@@ -81,17 +89,19 @@ export const ordersApi = {
 
   updatePriority: async (
     orderId: string,
+    batchId: string,
     data: UpdatePriorityRequest
   ): Promise<ApiResponse<DFOrder>> => {
     return fetchApi<ApiResponse<DFOrder>>(`/orders/${orderId}/priority`, {
       method: 'PATCH',
-      body: JSON.stringify(data),
+      body: JSON.stringify({ ...data, batch_id: batchId }),
     });
   },
 
-  shipConfirm: async (orderId: string): Promise<ApiResponse<DFOrder>> => {
+  shipConfirm: async (orderId: string, batchId: string): Promise<ApiResponse<DFOrder>> => {
     return fetchApi<ApiResponse<DFOrder>>(`/orders/${orderId}/ship-confirm`, {
       method: 'POST',
+      body: JSON.stringify({ batch_id: batchId }),
     });
   },
 
@@ -109,11 +119,12 @@ export const ordersApi = {
 
   updateTracking: async (
     orderId: string,
+    batchId: string,
     data: UpdateTrackingRequest
   ): Promise<ApiResponse<DFOrder>> => {
     return fetchApi<ApiResponse<DFOrder>>(`/orders/${orderId}/tracking`, {
       method: 'PATCH',
-      body: JSON.stringify(data),
+      body: JSON.stringify({ ...data, batch_id: batchId }),
     });
   },
 };

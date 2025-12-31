@@ -36,7 +36,10 @@ export interface BatchFilters {
 }
 
 export interface BulkShipConfirmRequest {
-  order_ids: string[];
+  orders: Array<{
+    order_id: string;
+    batch_id: string;
+  }>;
   confirmed_by?: string;
 }
 

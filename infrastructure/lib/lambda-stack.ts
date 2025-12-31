@@ -48,10 +48,10 @@ export class LambdaStack extends cdk.Stack {
       layers: [commonLayer],
       environment: {
         ...commonEnv,
-        SFTP_HOST: process.env.SFTP_HOST || 'your-sftp-host.com',
+        SFTP_HOST: process.env.SFTP_HOST || '',
         SFTP_PORT: process.env.SFTP_PORT || '22',
-        SFTP_USER: process.env.SFTP_USER || 'username',
-        SFTP_PASSWORD: process.env.SFTP_PASSWORD || 'password',
+        SFTP_USER: process.env.SFTP_USER || '',
+        SFTP_PASSWORD: process.env.SFTP_PASSWORD || '',
       },
     });
 

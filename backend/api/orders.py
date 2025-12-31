@@ -78,27 +78,18 @@ def handler(event, context):
             
             body = json.loads(event.get('body', '{}'))
             priority = body.get('priority')
+            batch_id = body.get('batch_id')
             
             if priority not in ['normal', 'high', 'urgent']:
                 return response(400, {'error': 'Invalid priority value'})
             
-            # Get order to find batch_id
-            # In production, you'd store batch_id mapping or pass it
-            # For simplicity, we'll need to query
-            from db import get_orders_table
-            from boto3.dynamodb.conditions import Key
+            if not batch_id:
+                return response(400, {'error': 'Missing batch_id in request body'})
             
-            table = get_orders_table()
-            resp = table.query(
-                KeyConditionExpression=Key('order_id').eq(order_id),
-                Limit=1
-            )
-            
-            if not resp.get('Items'):
+            # Verify order exists
+            order = get_order(order_id, batch_id)
+            if not order:
                 return response(404, {'error': 'Order not found'})
-            
-            order = resp['Items'][0]
-            batch_id = order['batch_id']
             
             updates = {
                 'print_priority': priority,
@@ -114,21 +105,17 @@ def handler(event, context):
             if not order_id:
                 return response(400, {'error': 'Missing order_id'})
             
-            # Get order to find batch_id
-            from db import get_orders_table
-            from boto3.dynamodb.conditions import Key
+            # Get batch_id from request body
+            body = json.loads(event.get('body', '{}'))
+            batch_id = body.get('batch_id')
             
-            table = get_orders_table()
-            resp = table.query(
-                KeyConditionExpression=Key('order_id').eq(order_id),
-                Limit=1
-            )
+            if not batch_id:
+                return response(400, {'error': 'Missing batch_id in request body'})
             
-            if not resp.get('Items'):
+            # Verify order exists
+            order = get_order(order_id, batch_id)
+            if not order:
                 return response(404, {'error': 'Order not found'})
-            
-            order = resp['Items'][0]
-            batch_id = order['batch_id']
             
             updates = {
                 'ship_confirmed_at': get_current_timestamp(),
@@ -141,28 +128,24 @@ def handler(event, context):
         # POST /orders/bulk-ship-confirm
         if http_method == 'POST' and 'bulk-ship-confirm' in path:
             body = json.loads(event.get('body', '{}'))
-            order_ids = body.get('order_ids', [])
+            orders_list = body.get('orders', [])  # Expecting [{order_id, batch_id}, ...]
             
-            if not order_ids:
-                return response(400, {'error': 'Missing order_ids'})
+            if not orders_list:
+                return response(400, {'error': 'Missing orders list'})
             
-            from db import get_orders_table
-            from boto3.dynamodb.conditions import Key
-            
-            table = get_orders_table()
             confirmed_count = 0
             timestamp = get_current_timestamp()
             
-            for order_id in order_ids:
-                resp = table.query(
-                    KeyConditionExpression=Key('order_id').eq(order_id),
-                    Limit=1
-                )
+            for order_info in orders_list:
+                order_id = order_info.get('order_id')
+                batch_id = order_info.get('batch_id')
                 
-                if resp.get('Items'):
-                    order = resp['Items'][0]
-                    batch_id = order['batch_id']
-                    
+                if not order_id or not batch_id:
+                    continue
+                
+                # Verify order exists
+                order = get_order(order_id, batch_id)
+                if order and not order.get('ship_confirmed_at'):
                     update_order(order_id, batch_id, {
                         'ship_confirmed_at': timestamp,
                         'updated_at': timestamp
@@ -185,21 +168,16 @@ def handler(event, context):
             if not tracking_number:
                 return response(400, {'error': 'Missing tracking_number'})
             
-            # Get order to find batch_id
-            from db import get_orders_table
-            from boto3.dynamodb.conditions import Key
+            # Get batch_id from request body
+            batch_id = body.get('batch_id')
             
-            table = get_orders_table()
-            resp = table.query(
-                KeyConditionExpression=Key('order_id').eq(order_id),
-                Limit=1
-            )
+            if not batch_id:
+                return response(400, {'error': 'Missing batch_id in request body'})
             
-            if not resp.get('Items'):
+            # Verify order exists
+            order = get_order(order_id, batch_id)
+            if not order:
                 return response(404, {'error': 'Order not found'})
-            
-            order = resp['Items'][0]
-            batch_id = order['batch_id']
             
             updates = {
                 'tracking_number': tracking_number,

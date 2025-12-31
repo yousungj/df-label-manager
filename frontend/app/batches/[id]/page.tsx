@@ -147,7 +147,7 @@ export default function BatchDetailPage() {
         </div>
       </div>
 
-      <OrderTable orders={orders} onUpdate={loadBatchAndOrders} />
+      <OrderTable orders={orders} batchId={batchId} onUpdate={loadBatchAndOrders} />
     </div>
   );
 }

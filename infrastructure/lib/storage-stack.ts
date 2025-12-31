@@ -24,7 +24,7 @@ export class StorageStack extends cdk.Stack {
       cors: [
         {
           allowedMethods: [s3.HttpMethods.GET, s3.HttpMethods.HEAD],
-          allowedOrigins: ['*'], // Configure based on your domain
+          allowedOrigins: ['https://*.themotorbox.com'], // Configure based on your domain
           allowedHeaders: ['*'],
           maxAge: 3000,
         },
