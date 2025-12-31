@@ -1,0 +1,24 @@
+{
+  "name": "df-label-manager",
+  "version": "1.0.0",
+  "description": "Amazon Direct Fulfillment Label Manager",
+  "private": true,
+  "scripts": {
+    "install:all": "npm install && cd frontend && npm install && cd ../infrastructure && npm install",
+    "dev:frontend": "cd frontend && npm run dev",
+    "build:frontend": "cd frontend && npm run build",
+    "deploy:infrastructure": "cd infrastructure && npm run cdk:deploy",
+    "deploy:frontend": "npm run build:frontend && cd infrastructure && npm run deploy:frontend",
+    "destroy:infrastructure": "cd infrastructure && npm run cdk:destroy",
+    "diff:infrastructure": "cd infrastructure && npm run cdk:diff",
+    "synth:infrastructure": "cd infrastructure && npm run cdk:synth"
+  },
+  "keywords": [
+    "amazon",
+    "direct-fulfillment",
+    "label-manager",
+    "shipping"
+  ],
+  "author": "",
+  "license": "MIT"
+}
